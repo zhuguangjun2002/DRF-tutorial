@@ -12,6 +12,7 @@ http --form POST http://127.0.0.1:8000/snippets/ code="Django Boys"
 ================================================================================
 
 
+================================================================================
 ===========================
 如果我们要增添数据怎么办？我们可以控制 Content-Type 头部信息来提交POST请求：
 
@@ -36,3 +37,112 @@ ParseError: JSON parse error - No JSON object could be decoded
 原因是因为我的`视图函数`-`snippet_list`,里面是用`data = JSONParser().parse(request)`，去解析上传上来的数据。
 结果我们使用`--form`格式，不是它喜欢的`json格式`，所以，解析就报错了。
 =====================================================
+================================================================================
+
+
+================================================================================
+## 查看`某一个snippet`
+
+------------------------
+$http http://127.0.0.1:8000/snippets/4/
+------------------------
+
+## 修改`某一个snippet`
+------------------------
+$http PUT http://127.0.0.1:8000/snippets/4/ code="Django Boys"
+------------------------
+
+结果如下：
+------------------------------------------------
+user@osgeolive:~/project/django-rest-framework/official-tutorial/tutorial$ http  http://127.0.0.1:8000/snippets/4/
+HTTP/1.0 200 OK
+Content-Length: 107
+Content-Type: application/json
+Date: Sun, 03 Jun 2018 13:07:53 GMT
+Server: WSGIServer/0.1 Python/2.7.12
+X-Frame-Options: SAMEORIGIN
+
+{
+    "code": "Django Grils", 
+    "id": 4, 
+    "language": "python", 
+    "linenos": false, 
+    "style": "friendly", 
+    "title": ""
+}
+
+------------------------
+user@osgeolive:~/project/django-rest-framework/official-tutorial/tutorial$ http PUT http://127.0.0.1:8000/snippets/4/ code="Django Boys"
+HTTP/1.0 200 OK
+Content-Length: 106
+Content-Type: application/json
+Date: Sun, 03 Jun 2018 13:08:03 GMT
+Server: WSGIServer/0.1 Python/2.7.12
+X-Frame-Options: SAMEORIGIN
+
+{
+    "code": "Django Boys", 
+    "id": 4, 
+    "language": "python", 
+    "linenos": false, 
+    "style": "friendly", 
+    "title": ""
+}
+------------------------------------------------
+竟然，没有出错。
+因为：
+
+JSON is the lingua franca of modern web services and it is also the implicit content type HTTPie by default uses.
+`JSON`是实时的标注，所以`HTTPie`默认使用`它`作为`隐式`的`content type`.
+你可以通过添加`v`参数，去查看实际的情况。
+
+------------------------------------------------
+user@osgeolive:~/project/django-rest-framework/official-tutorial/tutorial$ http -v PUT http://127.0.0.1:8000/snippets/4/ code="DjangoGirls"
+PUT /snippets/4/ HTTP/1.1
+Accept: application/json, */*
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Content-Length: 23
+Content-Type: application/json
+Host: 127.0.0.1:8000
+User-Agent: HTTPie/0.9.9
+
+{
+    "code": "DjangoGirls"
+}
+
+HTTP/1.0 200 OK
+Content-Length: 106
+Content-Type: application/json
+Date: Sun, 03 Jun 2018 13:12:17 GMT
+Server: WSGIServer/0.1 Python/2.7.12
+X-Frame-Options: SAMEORIGIN
+
+{
+    "code": "DjangoGirls", 
+    "id": 4, 
+    "language": "python", 
+    "linenos": false, 
+    "style": "friendly", 
+    "title": ""
+}
+------------------------------------------------
+发现在发送请求时，`Content-Type: application/json`.
+
+## 删除一个`snippet`
+-----------------
+http DELETE http://127.0.0.1:8000/snippets/4/
+-----------------
+执行结果如下：
+
+-----------------
+$ http DELETE  http://127.0.0.1:8000/snippets/4/
+HTTP/1.0 204 No Content
+Content-Length: 0
+Content-Type: text/html; charset=utf-8
+Date: Sun, 03 Jun 2018 13:28:28 GMT
+Server: WSGIServer/0.1 Python/2.7.12
+X-Frame-Options: SAMEORIGIN
+-----------------
+注意： `snippets/4/`，不能丢失`/`,否则，不会删除。
+================================================================================
