@@ -1,0 +1,38 @@
+================================================================================
+# 添加一条snippet数据
+
+# 使用`POST`方法的`json格式`,提交数据：
+----------------------
+http --json POST http://127.0.0.1:8000/snippets/ code="Django Grils"
+----------------------
+下列方法不行：
+----------------------
+http --form POST http://127.0.0.1:8000/snippets/ code="Django Boys"
+----------------------
+================================================================================
+
+
+===========================
+如果我们要增添数据怎么办？我们可以控制 Content-Type 头部信息来提交POST请求：
+
+http --form POST http://127.0.0.1:8000/snippets/ code="print 123"
+http --json POST http://127.0.0.1:8000/snippets/ code="print 456"
+===========================
+
+=====================================================
+# 当你运行`http --form POST`命令，提交时，会报错：
+-----------------------
+$http --form POST http://127.0.0.1:8000/snippets/ code="Django Boys"
+------------------------
+结果运行如下：
+-----------------------
+File "/home/user/project/django-rest-framework/official-tutorial/tutorial/snippets/views.py", line 25, in snippet_list
+    data = JSONParser().parse(request)
+  File "/home/user/project/django-rest-framework/official-tutorial/env/local/lib/python2.7/site-packages/rest_framework/parsers.py", line 70, in parse
+    raise ParseError('JSON parse error - %s' % six.text_type(exc))
+ParseError: JSON parse error - No JSON object could be decoded
+[03/Jun/2018 12:32:01] "POST /snippets/ HTTP/1.1" 500 78908
+------------------------
+原因是因为我的`视图函数`-`snippet_list`,里面是用`data = JSONParser().parse(request)`，去解析上传上来的数据。
+结果我们使用`--form`格式，不是它喜欢的`json格式`，所以，解析就报错了。
+=====================================================
