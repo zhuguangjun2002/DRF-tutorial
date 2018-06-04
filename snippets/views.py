@@ -12,8 +12,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import renderers
+from rest_framework import viewsets
 from django.contrib.auth.models import User
 from rest_framework import permissions
+from rest_framework.decorators import detail_route
 from snippets.permissions import IsOwnerOrReadOnly
 
 @api_view(['GET'])
@@ -23,52 +25,29 @@ def api_root(request,format=None):
         'snippets': reverse('snippet-list',request=request,format=format)
     })
 
-class SnippetList(generics.ListCreateAPIView):
-
+class SnippetViewSet(viewsets.ModelViewSet):
     """
-    List all code snippets, or create a new snippet.
-    列出所有已经存在的snippet或者创建一个新的snippet
-    """
-    queryset = Snippet.objects.all()
-    serializer_class = SnippetSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    viewset自动提供了`list`, `create`, `retrieve`,
+    `update` 和 `destroy` 动作.
 
-    def perform_create(self,serializer):
-        serializer.save(owner=self.request.user)
-
-class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
-
-    """
-    Retrieve, update or delete a code snippet.
-    检索查看、更新或者删除一个snippet
+    同时我们手动增加一个额外的'highlight'动作用于查看高亮的代码段
     """
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
 
-class SnippetHighlight(generics.GenericAPIView):
-    queryset = Snippet.objects.all()
-    renderer_classes = (renderers.StaticHTMLRenderer,)
-
-    def get(self,request,*args,**kwargs):
+    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    def highlight(self, request, *args, **kwargs):
         snippet = self.get_object()
         return Response(snippet.highlighted)
 
-class UserList(generics.ListAPIView):
+    def perform_create(self,serializer):
+        serializer.save(owner=self.request.user)
 
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    List all users.
-    列出所有已经存在的User
-    """
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-class UserDetail(generics.RetrieveAPIView):
-
-    """
-    Retrieve a User.
-    检索查看一个User
+    viewset自动提供了list和detail动作
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
